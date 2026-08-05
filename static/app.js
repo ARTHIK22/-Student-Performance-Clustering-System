@@ -52,16 +52,18 @@ document.addEventListener("DOMContentLoaded", () => {
         tab.addEventListener("click", () => {
             navTabs.forEach(t => t.classList.remove("active"));
             tabContents.forEach(c => c.classList.remove("active"));
-            
+
             tab.classList.add("active");
             const target = tab.getAttribute("data-tab");
             const targetEl = document.getElementById(target);
             targetEl.classList.add("active");
 
-            // Render/resize charts inside newly activated tab
-            setTimeout(() => {
-                renderActiveTabCharts(target);
-            }, 50);
+            // Wait for DOM paint then render charts (critical for WebGL 3D)
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    renderActiveTabCharts(target);
+                }, 100);
+            });
         });
     });
 
@@ -275,9 +277,19 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (tabId === "tab-optimalk") {
             renderPlotlyConfigured("plotlyOptimalK", lastClusterData.fig_eval_json);
         } else if (tabId === "tab-visualizer") {
+            // Render 2D first
             renderPlotlyConfigured("plotly2D", lastClusterData.fig_2d_json);
-            renderPlotlyConfigured("plotly3D", lastClusterData.fig_3d_json);
 
+            // Purge then re-render 3D with delay to ensure WebGL context initialises
+            const el3d = document.getElementById("plotly3D");
+            if (el3d) {
+                Plotly.purge(el3d);
+            }
+            setTimeout(() => {
+                renderPlotlyConfigured("plotly3D", lastClusterData.fig_3d_json);
+            }, 150);
+
+            // Boxplots
             const container = document.getElementById("boxplotsContainer");
             container.innerHTML = "";
             lastClusterData.boxplots_json.forEach((bpJson, idx) => {
@@ -402,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const fontColor = isDark ? "#F1F5F9" : "#0F172A";
         const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)";
 
-        // Deep copy figureJson to avoid mutating cached object
+        // Deep copy to avoid mutating cached response object
         const fig = JSON.parse(JSON.stringify(figureJson));
         fig.layout = fig.layout || {};
         fig.layout.paper_bgcolor = bg;
@@ -411,23 +423,39 @@ document.addEventListener("DOMContentLoaded", () => {
         fig.layout.font.color = fontColor;
         fig.layout.autosize = true;
 
-        // Configure 3D Scene if present
-        if (fig.layout.scene) {
-            fig.layout.scene.bgcolor = bg;
+        // Detect if this is a 3D chart
+        const is3D = fig.data && fig.data.some(trace => trace.type && trace.type.includes("3d"));
+
+        if (is3D) {
+            // Apply scene styling
+            fig.layout.scene = fig.layout.scene || {};
+            fig.layout.scene.bgcolor = isDark ? "#1A2744" : "#F8FAFC";
             ['xaxis', 'yaxis', 'zaxis'].forEach(axis => {
                 fig.layout.scene[axis] = fig.layout.scene[axis] || {};
-                fig.layout.scene[axis].backgroundcolor = bg;
+                fig.layout.scene[axis].backgroundcolor = isDark ? "#1A2744" : "#F8FAFC";
                 fig.layout.scene[axis].gridcolor = gridColor;
                 fig.layout.scene[axis].color = fontColor;
                 fig.layout.scene[axis].tickfont = { color: fontColor };
                 fig.layout.scene[axis].titlefont = { color: fontColor };
+                fig.layout.scene[axis].linecolor = gridColor;
+            });
+
+            // Always use newPlot for 3D to avoid stale WebGL context
+            Plotly.purge(el);
+            Plotly.newPlot(elementId, fig.data, fig.layout, {
+                responsive: true,
+                displayModeBar: true
+            }).then(() => {
+                Plotly.Plots.resize(el);
+            });
+        } else {
+            Plotly.react(elementId, fig.data, fig.layout, {
+                responsive: true,
+                displayModeBar: true
+            }).then(() => {
+                Plotly.Plots.resize(el);
             });
         }
-
-        // Render with Plotly.react for high-performance redraws
-        Plotly.react(elementId, fig.data, fig.layout, { responsive: true, displayModeBar: true }).then(() => {
-            Plotly.Plots.resize(el);
-        });
     }
 
     function showLoading(show) {
