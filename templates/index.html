@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Clustering System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🎓</div>
+                <h2>Controls & Setup</h2>
+            </div>
+
+            <div class="theme-toggle-container">
+                <button id="themeToggleBtn" class="theme-toggle-btn">
+                    <span id="themeIcon">☀️</span> <span id="themeText">Switch to Light Mode</span>
+                </button>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <!-- Data Source -->
+            <div class="sidebar-section">
+                <label class="sidebar-label">📂 Data Source</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="dataSource" value="sample" checked>
+                        <span>📊 Sample Dataset (300 Students)</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="dataSource" value="custom">
+                        <span>📤 Upload Custom CSV</span>
+                    </label>
+                </div>
+
+                <div id="sampleControlBox" class="control-box">
+                    <button id="regenerateBtn" class="btn btn-secondary">🔄 Regenerate Sample Data</button>
+                </div>
+
+                <div id="uploadControlBox" class="control-box hidden">
+                    <input type="file" id="csvFileInput" accept=".csv" class="file-input">
+                    <button id="uploadBtn" class="btn btn-primary" style="margin-top:8px;">Upload CSV</button>
+                    <div id="uploadStatus" class="status-msg"></div>
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <!-- Feature Selection -->
+            <div class="sidebar-section">
+                <label class="sidebar-label">🎯 Feature Selection</label>
+                <p class="sidebar-subtext">Choose features for K-Means clustering:</p>
+                <div id="featureCheckboxes" class="checkbox-group">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <!-- Model Parameters -->
+            <div class="sidebar-section">
+                <label class="sidebar-label">🤖 Model Parameters</label>
+                <div class="form-group">
+                    <div class="slider-header">
+                        <span>Number of Clusters (K):</span>
+                        <span id="kValDisplay" class="badge-value">4</span>
+                    </div>
+                    <input type="range" id="kSlider" min="2" max="8" value="4" step="1" class="slider-input">
+                </div>
+
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="seedInput">Random Seed:</label>
+                    <input type="number" id="seedInput" value="42" class="text-input">
+                </div>
+
+                <button id="runClusterBtn" class="btn btn-accent" style="margin-top: 16px;">
+                    ⚡ Run Clustering
+                </button>
+            </div>
+
+            <hr class="sidebar-divider">
+
+            <!-- Summary Config Badge -->
+            <div class="config-summary-box">
+                <div class="config-summary-title">📌 Active Config</div>
+                <div class="config-summary-item">Features: <strong id="cfgFeatures">-</strong></div>
+                <div class="config-summary-item">Clusters K: <strong id="cfgK">4</strong></div>
+                <div class="config-summary-item">Total Students: <strong id="cfgStudents">300</strong></div>
+            </div>
+        </aside>
+
+        <!-- Main Content area -->
+        <main class="main-content">
+            <!-- App Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-icon">🎓</div>
+                    <div>
+                        <h1 class="header-title">Student Performance Clustering System</h1>
+                        <p class="header-subtitle">Machine Learning · Unsupervised K-Means Clustering · Academic Analytics</p>
+                        <div class="header-badges">
+                            <span class="header-badge">🤖 K-Means Clustering</span>
+                            <span class="header-badge">📊 Interactive Analytics</span>
+                            <span class="header-badge">⚡ Real-time Prediction</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="tab-overview">📊 Data Overview</button>
+                <button class="nav-tab" data-tab="tab-optimalk">📈 Optimal K Finder</button>
+                <button class="nav-tab" data-tab="tab-visualizer">🎨 Cluster Visualizer</button>
+
+                <button class="nav-tab" data-tab="tab-personas">📋 Dataset & Personas</button>
+                <button class="nav-tab" data-tab="tab-predictor">🔮 Student Predictor</button>
+            </nav>
+
+            <!-- Loading Spinner Overlay -->
+            <div id="loadingSpinner" class="spinner-overlay hidden">
+                <div class="spinner"></div>
+                <div class="spinner-text">Computing K-Means Clustering & Visualizations...</div>
+            </div>
+
+            <!-- TAB 1: DATA OVERVIEW -->
+            <section id="tab-overview" class="tab-content active">
+                <div class="section-title">📌 Dataset Highlights</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">👥</div>
+                        <div class="metric-title">Total Students</div>
+                        <div id="metricTotalStudents" class="metric-value">300</div>
+                        <div class="metric-sub">enrolled records</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🔢</div>
+                        <div class="metric-title">Numeric Features</div>
+                        <div id="metricNumericFeatures" class="metric-value">2</div>
+                        <div class="metric-sub">available columns</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">📚</div>
+                        <div id="metricFeature1Title" class="metric-title">Study Hours</div>
+                        <div id="metricFeature1Val" class="metric-value">20.4</div>
+                        <div class="metric-sub">average per week</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🎯</div>
+                        <div id="metricFeature2Title" class="metric-title">Attendance</div>
+                        <div id="metricFeature2Val" class="metric-value">76.2%</div>
+                        <div class="metric-sub">average overall</div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:28px;">📄 Dataset Preview</div>
+                <div class="table-container">
+                    <table id="previewTable" class="data-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="grid-2col" style="margin-top:28px;">
+                    <div>
+                        <div class="section-title">📐 Summary Statistics</div>
+                        <div class="table-container">
+                            <table id="statsTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Feature</th>
+                                        <th>Mean</th>
+                                        <th>Std</th>
+                                        <th>Min</th>
+                                        <th>Median</th>
+                                        <th>Max</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-title">🔗 Feature Correlation Matrix</div>
+                        <div id="plotlyCorrMatrix" class="plotly-chart-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: OPTIMAL K FINDER -->
+            <section id="tab-optimalk" class="tab-content">
+                <div class="section-title">📈 Finding the Optimal Number of Clusters (K)</div>
+
+                <div class="grid-2col">
+                    <div class="info-card info-elbow">
+                        <h3>📉 Elbow Method (WCSS)</h3>
+                        <p>Evaluates Within-Cluster Sum of Squares. Looks for the "elbow point" where adding more clusters offers diminishing returns in variance reduction.</p>
+                    </div>
+                    <div class="info-card info-silhouette">
+                        <h3>🧮 Silhouette Score Analysis</h3>
+                        <p>Measures how similar a student is to their assigned cluster compared to other clusters (range: -1 to +1). <strong>Higher scores indicate better separation.</strong></p>
+                    </div>
+                </div>
+
+                <div id="plotlyOptimalK" class="plotly-chart-container" style="margin-top:24px; min-height:420px;"></div>
+
+                <div class="recommended-k-banner" id="recommendedKBanner">
+                    <div class="rec-icon">⭐</div>
+                    <div>
+                        <div class="rec-title">Recommended K = <span id="recKVal">4</span></div>
+                        <div class="rec-sub">Highest Silhouette Score: <span id="recSilVal">0.45</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: CLUSTER VISUALIZER -->
+            <section id="tab-visualizer" class="tab-content">
+                <div class="section-title">🎨 2D & 3D Interactive Cluster Maps</div>
+
+                <div id="plotly2D" class="plotly-chart-container" style="min-height:540px;"></div>
+
+                <div class="section-title" style="margin-top:32px;">🌐 3D Feature Visualizer</div>
+                <div id="plotly3D" class="plotly-chart-container" style="min-height:580px;"></div>
+
+                <div class="section-title" style="margin-top:32px;">📊 Feature Distribution Across Clusters</div>
+                <div id="boxplotsContainer" class="grid-2col"></div>
+            </section>
+
+            <!-- TAB 4: DATASET & PERSONAS -->
+            <section id="tab-personas" class="tab-content">
+                <div class="section-title">📋 Academic Personas & Cluster Breakdown</div>
+                
+                <div id="personaCardsGrid" class="personas-grid">
+                    <!-- Dynamic persona cards rendered here -->
+                </div>
+
+                <div class="section-title" style="margin-top:32px;">📑 Clustered Dataset Table</div>
+                <div class="table-container">
+                    <table id="clusteredDataTable" class="data-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 5: STUDENT PREDICTOR -->
+            <section id="tab-predictor" class="tab-content">
+                <div class="section-title">🔮 Real-Time Student Predictor</div>
+                <p class="section-desc">Enter academic metrics for an individual student to instantly predict their assigned persona cluster and receive targeted recommendations.</p>
+
+                <div class="predictor-layout">
+                    <form id="predictionForm" class="predictor-form-card">
+                        <h3>Input Student Details</h3>
+                        <div id="dynamicPredictInputs">
+                            <!-- Input fields dynamically inserted based on selected features -->
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:20px; width:100%;">
+                            🎯 Predict Student Cluster
+                        </button>
+                    </form>
+
+                    <div id="predictorResult" class="predictor-result-panel hidden">
+                        <div class="result-header">
+                            <div class="result-badge" id="resultClusterBadge">Cluster 0</div>
+                            <h2 id="resultPersonaName">High Performers</h2>
+                        </div>
+                        <p id="resultPersonaDesc" class="result-desc"></p>
+
+                        <div class="advice-box">
+                            <div class="advice-title">💡 Personalized Academic Guidance</div>
+                            <ul id="resultAdviceList" class="advice-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

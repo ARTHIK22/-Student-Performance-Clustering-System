@@ -14,8 +14,8 @@ ENV/
 # Streamlit cache
 .streamlit/
 
-# Data (optional — keep the sample CSV)
-# data/
+# Data
+data/custom_student_data.csv
 
 # IDE / OS
 .vscode/
