@@ -1,52 +1,27 @@
 # 🎓 Student Performance Clustering System
 
-An interactive Machine Learning web application that groups students based on their **Study Hours** and **Attendance Percentage** using **K-Means Clustering**. Built with Python, Flask, HTML5, CSS3, JavaScript, and Plotly.js.
+An end-to-end Machine Learning web application and analytics platform built with **Python**, **Streamlit**, and **Scikit-Learn**.
+
+The system helps educators and academic counselors group students into meaningful **Academic Personas** based on behavioral indicators — weekly study hours, attendance percentage, assignment scores, and exam results — using **Unsupervised K-Means Clustering**.
+
+🔗 **Live Demo:** [student-performance-clustering-syst.vercel.app](https://student-performance-clustering-syst.vercel.app/)
 
 ---
 
-## 📖 Project Description
+## ✨ Features
 
-The Student Performance Clustering System analyzes student academic data and identifies students with similar academic behavior by forming clusters. It visualizes the generated clusters interactively and allows educators to predict which group a new student belongs to in real-time.
-
----
-
-## 🎯 Objectives
-
-- Analyze student academic data (study hours, attendance, scores)
-- Group students based on performance patterns using unsupervised learning
-- Visualize student clusters with interactive 2D & 3D plots
-- Display clustered dataset with persona insights
-- Predict cluster and receive targeted academic guidance for any individual student in real-time
-
----
-
-## 🤖 Machine Learning Model
-
-**K-Means Clustering** (Unsupervised Learning)
-- Elbow Method (WCSS) for optimal K selection
-- Silhouette Score Analysis for cluster quality evaluation
-- Automated Persona Assignment per cluster
-
-### Academic Personas Generated
-| Persona | Description |
-|---|---|
-| 🌟 High Performers | High study hours + high attendance |
-| ⚠️ At-Risk / Needs Intervention | Low study hours + low attendance |
-| 📚 Passive / Attentive Learners | High attendance, lower self-study |
-| ⚡ Independent / Self-Driven | High self-study, lower attendance |
-
----
-
-## 🛠 Technologies Used
-
-| Technology | Purpose |
-|---|---|
-| Python 3.x | Core language |
-| Flask | Backend REST API server |
-| HTML5 / CSS3 / JavaScript | Modern dashboard user interface |
-| Plotly.js | Client-side interactive visualizations |
-| Scikit-Learn | K-Means clustering & StandardScaler |
-| Pandas & NumPy | Data manipulation |
+- **Unsupervised K-Means Clustering** — segments students based on customizable behavioral metrics
+- **Optimal K Advisor** — algorithmic recommendation using the Elbow Method and Silhouette Analysis
+- **Automated Academic Persona Generation** — categorizes clusters into intuitive profiles:
+  - 🌟 **High Performers** (Top Tier) — high study hours + high attendance
+  - ⚠️ **At-Risk / Needs Intervention** — low study hours + low attendance
+  - 📚 **Passive / Attentive Learners** — low study hours + high attendance
+  - ⚡ **Independent / Self-Driven** — high study hours + low attendance
+- **Interactive 2D & 3D Visualizations** — hover tooltips, centroid overlays, and rotational 3D plots powered by Plotly
+- **Custom Data Support** — upload any CSV dataset or use the built-in 300-student synthetic generator
+- **Real-Time Single Student Predictor** — predicts cluster membership for individual student metrics with tailored advisor recommendations
+- **Exportable Results** — instant CSV download of the clustered dataset
+- **Modern Aesthetic UI** — toggle between Dark Mode and Light Mode themes
 
 ---
 
@@ -54,66 +29,158 @@ The Student Performance Clustering System analyzes student academic data and ide
 
 ```
 Student Performance Clustering System/
-├── app.py                          # Flask backend web application
-├── requirements.txt                # Python dependencies
-├── test_clustering.py              # Automated test suite
+├── app.py                              # Main Streamlit web application & UI dashboard
+├── requirements.txt                    # Dependency specifications
+├── test_clustering.py                  # Automated unit and integration test suite
 ├── data/
-│   └── student_performance_sample.csv   # Generated dataset (300 students)
-├── templates/
-│   └── index.html                  # Dashboard HTML template
-├── static/
-│   ├── styles.css                  # Modern CSS design system & dark mode
-│   └── app.js                      # Client application & Plotly rendering
+│   └── student_performance_sample.csv  # Pre-generated sample dataset (300 students)
 └── utils/
-    ├── data_generator.py           # Synthetic dataset generator
-    ├── clustering.py               # K-Means training & persona mapping
-    └── visualization.py            # Plotly chart builders
+    ├── data_generator.py               # Synthetic dataset generator engine
+    ├── clustering.py                   # ML pipeline (scaling, K-Means, Elbow, Personas, Predictor)
+    └── visualization.py                # Plotly interactive chart builders
 ```
 
 ---
 
-## ⚙️ Working
+## 📸 Screenshots
 
-1. Load the student dataset (built-in 300 students or upload custom CSV)
-2. Perform preprocessing & feature scaling (StandardScaler)
-3. Select study hours and attendance as clustering features
-4. Evaluate optimal K using Elbow Method & Silhouette Analysis
-5. Train the K-Means model
-6. Generate student clusters with persona labels
-7. Display interactive 2D/3D cluster scatter plots
-8. Show clustered dataset table with persona assignments
-9. Predict cluster & advice for any new student via live form
+> Drop your screenshot files into a `screenshots/` folder in the project root using the filenames below (or update the paths to match your own), and they'll render automatically here.
+
+### 📊 Data Overview
+KPI cards, dataset preview, summary statistics, and correlation heatmap.
+
+![Data Overview](./screenshots/data-overview.png)
+
+### 📈 Optimal K Finder
+Elbow Method (WCSS) and Silhouette Score analysis with recommended K.
+
+![Optimal K Finder](./screenshots/optimal-k-finder.png)
+
+### 🎨 Cluster Visualizer
+2D/3D interactive scatter plots with centroid overlays and feature boxplots.
+
+![Cluster Visualizer](./screenshots/cluster-visualizer.png)
+
+### 📋 Dataset & Personas
+Color-coded persona breakdown cards with cluster filtering and CSV export.
+
+![Dataset & Personas](./screenshots/dataset-personas.png)
+
+### 🔮 Student Predictor
+Live prediction form with persona badge and generated action plan.
+
+![Student Predictor](./screenshots/student-predictor.png)
+
+### 🌗 Dark / Light Mode
+Theme toggle showcasing both UI modes.
+
+![Dark and Light Mode](./screenshots/theme-toggle.png)
 
 ---
 
-## 🚀 Installation & Running
+## 🛠️ Tech Stack
+
+| Library | Version | Purpose |
+|---|---|---|
+| `streamlit` | `>=1.30.0,<1.42.0` | UI Dashboard & Web Framework |
+| `starlette` | `<0.40.0` | ASGI framework compatibility |
+| `pandas` | `>=2.0.0` | Dataframe manipulation & CSV export |
+| `numpy` | `>=1.24.0` | Vectorized numerical operations & data sampling |
+| `scikit-learn` | `>=1.3.0` | StandardScaler, KMeans, silhouette_score |
+| `plotly` | `>=5.15.0` | Interactive 2D/3D visualizations |
+| `matplotlib` | `>=3.7.0` | Base graphics support |
+| `seaborn` | `>=0.12.0` | Statistical visualization support |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.9+
+- pip
+
+### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ARTHIK22/-Student-Performance-Clustering-System.git
-cd "-Student-Performance-Clustering-System"
+# Clone the repository
+git clone <repository-url>
+cd "Student Performance Clustering System"
 
-# 2. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
-
-# 3. Run the Flask application
-python app.py
 ```
 
-Open **http://localhost:5000** in your browser.
+### Run the App
+
+```bash
+streamlit run app.py
+```
+
+The app will open automatically in your browser at `http://localhost:8501`.
+
+### Run Tests
+
+```bash
+python -m pytest test_clustering.py
+```
 
 ---
 
-## 🌟 Features
+## 🧭 How It Works
 
-- **🌙 / ☀️ Dark & Light Mode** toggle in sidebar
-- **📊 Interactive Visualizations** with hover tooltips (Plotly.js)
-- **🎯 Live Student Predictor** — input metrics and receive instant cluster assignment & customized advice
-- **📈 Optimal K Advisor** — algorithmic recommendation for best cluster count
-- **👥 Persona Cards** — color-coded academic behavior cards per cluster
+```mermaid
+flowchart TD
+    A[Data Ingestion: Sample CSV or Custom CSV Upload] --> B[Data Preprocessing: StandardScaler Normalization]
+    B --> C[Optimal K Advisor: Compute WCSS & Silhouette Scores]
+    B --> D[Model Training: Fit K-Means Clustering Model]
+    D --> E[Centroid Unscaling & Persona Mapping]
+    E --> F[Interactive Visualizations: 2D/3D Scatter, Boxplots, Heatmaps]
+    E --> G[Student Persona Breakdown & CSV Export]
+    E --> H[Live Student Predictor & Academic Advisor Action Plan]
+```
+
+1. **Data Ingestion** — load the built-in 300-student sample dataset or upload a custom CSV
+2. **Preprocessing** — standardize selected features using `StandardScaler` (zero mean, unit variance)
+3. **Optimal K Advisor** — compute WCSS (Elbow Method) and Silhouette Scores across K = 2 to 8
+4. **Model Training** — fit `KMeans` (`n_init=10`) with the chosen number of clusters
+5. **Centroid Unscaling & Persona Mapping** — inverse-transform centroids back to real units and assign academic archetypes based on median study hours/attendance splits
+6. **Visualization & Insights** — explore results via 2D/3D scatter plots, boxplots, correlation heatmaps, persona breakdowns, CSV export, and a live single-student predictor
+
+---
+
+## 📊 Application Tabs
+
+| Tab | Description |
+|---|---|
+| 📊 **Data Overview** | KPI cards (total students, features, means), sample preview, summary statistics, correlation heatmap |
+| 📈 **Optimal K Finder** | Side-by-side Elbow (WCSS) and Silhouette Score plots with the recommended K highlighted |
+| 🎨 **Cluster Visualizer** | 2D scatter with centroid overlays, optional 3D scatter (≥3 features), per-cluster feature boxplots |
+| 📋 **Dataset & Personas** | Color-coded persona breakdown, cluster filtering, CSV export |
+| 🔮 **Student Predictor** | Live form to predict an individual student's cluster and persona, with a generated action plan |
+
+---
+
+## 🧪 Sample Dataset
+
+The synthetic dataset generator (`utils/data_generator.py`) produces 300 realistic student records across four behavioral archetypes:
+
+| Persona | % of Cohort | Study Hours (μ, σ) | Attendance (μ, σ) |
+|---|---|---|---|
+| High Performers | 30% (90 students) | 22, 4 | 88%, 5 |
+| At-Risk | 25% (75 students) | 6, 2.5 | 52%, 8 |
+| Passive Learners | 25% (75 students) | 8, 2.5 | 85%, 6 |
+| Independent Learners | 20% (60 students) | 20, 3.5 | 60%, 7 |
+
+Values are clipped to realistic bounds (e.g., Study Hours: 1–35, Attendance: 35–100%) and paired with generated Student IDs (`STU-1001`–`STU-1300`) and names.
 
 ---
 
 ## 📄 License
 
-MIT License — free for educational and research use.
+Add your preferred license here (e.g., MIT).
+
+---
+
+## 🙋 Contributing
+
+Issues and pull requests are welcome. Please run the test suite (`test_clustering.py`) before submitting changes.
