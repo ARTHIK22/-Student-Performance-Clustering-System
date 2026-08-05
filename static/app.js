@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedFeatures = [];
     let isCustom = false;
     let currentTheme = "dark";
+    let lastClusterData = null;
 
     // Elements
     const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -39,19 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
         themeIcon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
         themeText.textContent = currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
         
-        // Relayout active plotly charts for theme compatibility
-        const plotlyDivs = document.querySelectorAll(".plotly-chart-container");
-        plotlyDivs.forEach(div => {
-            if (div.data) {
-                const bg = currentTheme === "dark" ? "#1E293B" : "#FFFFFF";
-                const fontColor = currentTheme === "dark" ? "#F1F5F9" : "#0F172A";
-                Plotly.relayout(div, {
-                    "paper_bgcolor": bg,
-                    "plot_bgcolor": bg,
-                    "font.color": fontColor
-                });
-            }
-        });
+        // Re-render charts for active tab with new theme
+        const activeTab = document.querySelector(".nav-tab.active")?.getAttribute("data-tab");
+        if (activeTab && lastClusterData) {
+            renderActiveTabCharts(activeTab);
+        }
     });
 
     // Tab Switcher
@@ -62,10 +55,13 @@ document.addEventListener("DOMContentLoaded", () => {
             
             tab.classList.add("active");
             const target = tab.getAttribute("data-tab");
-            document.getElementById(target).classList.add("active");
+            const targetEl = document.getElementById(target);
+            targetEl.classList.add("active");
 
-            // Resize Plotly charts when switching tabs
-            window.dispatchEvent(new Event('resize'));
+            // Render/resize charts inside newly activated tab
+            setTimeout(() => {
+                renderActiveTabCharts(target);
+            }, 50);
         });
     });
 
@@ -253,10 +249,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await res.json();
             if (data.success) {
+                lastClusterData = data;
                 renderOverviewMetrics(data);
                 renderOptimalK(data);
-                renderVisualizerPlots(data);
                 renderPersonasAndTable(data);
+
+                // Render current active tab charts
+                const activeTab = document.querySelector(".nav-tab.active")?.getAttribute("data-tab") || "tab-overview";
+                renderActiveTabCharts(activeTab);
             } else {
                 alert("Clustering Error: " + (data.error || "Unknown error"));
             }
@@ -264,6 +264,29 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Clustering API execution failed:", err);
         } finally {
             showLoading(false);
+        }
+    }
+
+    function renderActiveTabCharts(tabId) {
+        if (!lastClusterData) return;
+
+        if (tabId === "tab-overview") {
+            renderPlotlyConfigured("plotlyCorrMatrix", lastClusterData.corr_fig_json);
+        } else if (tabId === "tab-optimalk") {
+            renderPlotlyConfigured("plotlyOptimalK", lastClusterData.fig_eval_json);
+        } else if (tabId === "tab-visualizer") {
+            renderPlotlyConfigured("plotly2D", lastClusterData.fig_2d_json);
+            renderPlotlyConfigured("plotly3D", lastClusterData.fig_3d_json);
+
+            const container = document.getElementById("boxplotsContainer");
+            container.innerHTML = "";
+            lastClusterData.boxplots_json.forEach((bpJson, idx) => {
+                const bpDiv = document.createElement("div");
+                bpDiv.className = "plotly-chart-container";
+                bpDiv.id = `boxplotChart_${idx}`;
+                container.appendChild(bpDiv);
+                renderPlotlyConfigured(`boxplotChart_${idx}`, bpJson);
+            });
         }
     }
 
@@ -280,28 +303,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById("metricFeature2Val").textContent = avg2.toFixed(1) + (selectedFeatures[1].includes("Percentage") ? "%" : "");
             }
         }
-        renderPlotlyConfigured("plotlyCorrMatrix", data.corr_fig_json);
     }
 
     function renderOptimalK(data) {
-        renderPlotlyConfigured("plotlyOptimalK", data.fig_eval_json);
         document.getElementById("recKVal").textContent = data.best_k;
         document.getElementById("recSilVal").textContent = data.best_silhouette_score;
-    }
-
-    function renderVisualizerPlots(data) {
-        renderPlotlyConfigured("plotly2D", data.fig_2d_json);
-        renderPlotlyConfigured("plotly3D", data.fig_3d_json);
-
-        const container = document.getElementById("boxplotsContainer");
-        container.innerHTML = "";
-        data.boxplots_json.forEach((bpJson, idx) => {
-            const bpDiv = document.createElement("div");
-            bpDiv.className = "plotly-chart-container";
-            bpDiv.id = `boxplotChart_${idx}`;
-            container.appendChild(bpDiv);
-            renderPlotlyConfigured(`boxplotChart_${idx}`, bpJson);
-        });
     }
 
     function renderPersonasAndTable(data) {
@@ -386,19 +392,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Helper to render Plotly chart with theme adjustment
+    // Helper to render Plotly chart with theme & scene configuration
     function renderPlotlyConfigured(elementId, figureJson) {
-        const bg = currentTheme === "dark" ? "#1E293B" : "#FFFFFF";
-        const fontColor = currentTheme === "dark" ? "#F1F5F9" : "#0F172A";
+        const el = document.getElementById(elementId);
+        if (!el || !figureJson) return;
 
-        figureJson.layout = figureJson.layout || {};
-        figureJson.layout.paper_bgcolor = bg;
-        figureJson.layout.plot_bgcolor = bg;
-        figureJson.layout.font = figureJson.layout.font || {};
-        figureJson.layout.font.color = fontColor;
-        figureJson.layout.autosize = true;
+        const isDark = currentTheme === "dark";
+        const bg = isDark ? "#1E293B" : "#FFFFFF";
+        const fontColor = isDark ? "#F1F5F9" : "#0F172A";
+        const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)";
 
-        Plotly.newPlot(elementId, figureJson.data, figureJson.layout, { responsive: true });
+        // Deep copy figureJson to avoid mutating cached object
+        const fig = JSON.parse(JSON.stringify(figureJson));
+        fig.layout = fig.layout || {};
+        fig.layout.paper_bgcolor = bg;
+        fig.layout.plot_bgcolor = bg;
+        fig.layout.font = fig.layout.font || {};
+        fig.layout.font.color = fontColor;
+        fig.layout.autosize = true;
+
+        // Configure 3D Scene if present
+        if (fig.layout.scene) {
+            fig.layout.scene.bgcolor = bg;
+            ['xaxis', 'yaxis', 'zaxis'].forEach(axis => {
+                fig.layout.scene[axis] = fig.layout.scene[axis] || {};
+                fig.layout.scene[axis].backgroundcolor = bg;
+                fig.layout.scene[axis].gridcolor = gridColor;
+                fig.layout.scene[axis].color = fontColor;
+                fig.layout.scene[axis].tickfont = { color: fontColor };
+                fig.layout.scene[axis].titlefont = { color: fontColor };
+            });
+        }
+
+        // Render with Plotly.react for high-performance redraws
+        Plotly.react(elementId, fig.data, fig.layout, { responsive: true, displayModeBar: true }).then(() => {
+            Plotly.Plots.resize(el);
+        });
     }
 
     function showLoading(show) {

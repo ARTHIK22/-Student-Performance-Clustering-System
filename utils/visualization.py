@@ -161,14 +161,19 @@ def plot_3d_clusters(df, x_col, y_col, z_col, cluster_col, personas=None):
         hover_data=hover_data,
         color_discrete_sequence=CLUSTER_COLORS,
         title=f"3D Visualizer ({x_col.replace('_', ' ')} x {y_col.replace('_', ' ')} x {z_col.replace('_', ' ')})",
-        opacity=0.85
+        opacity=0.9
     )
 
-    fig.update_traces(marker=dict(size=5))
+    fig.update_traces(marker=dict(size=7, line=dict(width=0.5, color='rgba(255,255,255,0.6)')))
     fig.update_layout(
         template="plotly_white",
         height=600,
-        margin=dict(l=0, r=0, b=0, t=40)
+        margin=dict(l=0, r=0, b=0, t=40),
+        scene=dict(
+            xaxis_title=x_col.replace("_", " "),
+            yaxis_title=y_col.replace("_", " "),
+            zaxis_title=z_col.replace("_", " ")
+        )
     )
     return fig
 
