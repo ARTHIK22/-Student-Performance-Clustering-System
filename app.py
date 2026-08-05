@@ -536,19 +536,19 @@ def main():
 
         st.markdown("<br>", unsafe_allow_html=True)
         section("📄", "Dataset Preview")
-        st.dataframe(df.head(10), width="stretch")
+        st.dataframe(df.head(10), use_container_width=True)
 
         col_stat, col_corr = st.columns([1, 1])
         with col_stat:
             section("📐", "Summary Statistics")
             st.dataframe(
                 df[selected_features].describe().T[["mean", "std", "min", "50%", "max"]],
-                width="stretch"
+                use_container_width=True
             )
         with col_corr:
             section("🔗", "Correlation Matrix")
             corr_fig = plot_correlation_matrix(df, selected_features)
-            st.plotly_chart(corr_fig, width="stretch")
+            st.plotly_chart(corr_fig, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════
     # TAB 2 — OPTIMAL K
@@ -579,7 +579,7 @@ def main():
         st.markdown("<br>", unsafe_allow_html=True)
         eval_df = compute_elbow_and_silhouette(X_scaled, max_k=8)
         fig_eval = plot_elbow_and_silhouette(eval_df)
-        st.plotly_chart(fig_eval, width="stretch")
+        st.plotly_chart(fig_eval, use_container_width=True)
 
         best_k = int(eval_df.loc[eval_df["Silhouette_Score"].idxmax()]["K"])
         best_score = eval_df["Silhouette_Score"].max()
@@ -621,7 +621,7 @@ def main():
         y_axis = selected_features[1]
 
         fig_2d = plot_2d_clusters(df_clustered, x_axis, y_axis, "Cluster", centroids_df, personas)
-        st.plotly_chart(fig_2d, width="stretch")
+        st.plotly_chart(fig_2d, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         section("📍", "Cluster Centroids (Original Scale)")
@@ -637,21 +637,21 @@ def main():
             .highlight_max(subset=selected_features, color="#DCFCE7")
             .highlight_min(subset=selected_features, color="#FEE2E2")
         )
-        st.dataframe(styled, width="stretch")
+        st.dataframe(styled, use_container_width=True)
 
         if len(selected_features) >= 3:
             st.markdown("<br>", unsafe_allow_html=True)
             section("🧊", "3D Cluster Visualizer")
             z_axis = selected_features[2]
             fig_3d = plot_3d_clusters(df_clustered, x_axis, y_axis, z_axis, "Cluster", personas)
-            st.plotly_chart(fig_3d, width="stretch")
+            st.plotly_chart(fig_3d, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         section("📦", "Feature Distributions by Cluster")
         boxplots = plot_feature_boxplots(df_clustered, "Cluster", selected_features, personas)
         col_box1, col_box2 = st.columns(2)
         for i, boxfig in enumerate(boxplots):
-            (col_box1 if i % 2 == 0 else col_box2).plotly_chart(boxfig, width="stretch")
+            (col_box1 if i % 2 == 0 else col_box2).plotly_chart(boxfig, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════
     # TAB 4 — DATASET & PERSONAS
@@ -693,7 +693,7 @@ def main():
 
         df_filtered = df_clustered[df_clustered["Cluster"].isin(filter_cluster)].copy()
         df_filtered["Persona"] = df_filtered["Cluster"].apply(lambda c: personas.get(c, {}).get("name", ""))
-        st.dataframe(df_filtered, width="stretch")
+        st.dataframe(df_filtered, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         csv_data = df_filtered.to_csv(index=False).encode("utf-8")
