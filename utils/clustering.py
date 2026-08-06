@@ -26,6 +26,10 @@ def compute_elbow_and_silhouette(X_scaled, max_k=10):
     wcss = []
     silhouette_scores = []
     k_range = list(range(2, max_k + 1))
+
+    # Safety guard: if dataset is too small to evaluate any K, return empty frame
+    if not k_range:
+        return pd.DataFrame(columns=["K", "WCSS", "Silhouette_Score"])
     
     for k in k_range:
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
