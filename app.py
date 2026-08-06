@@ -148,9 +148,16 @@ def run_clustering():
             "Cluster", centroids_df, personas
         )
 
-        z_col = "Exam_Score" if "Exam_Score" in df.columns and "Exam_Score" not in selected_features[:2] else (
-            selected_features[2] if len(selected_features) > 2 else selected_features[1]
-        )
+        # Determine z-axis column: prefer a 3rd selected feature, then Exam_Score, then any unused numeric col
+        if len(selected_features) > 2:
+            z_col = selected_features[2]
+        elif "Exam_Score" in df.columns and "Exam_Score" not in selected_features[:2]:
+            z_col = "Exam_Score"
+        else:
+            # Pick any unused numeric column to avoid a flat/degenerate 3D chart
+            unused_cols = [c for c in feature_candidates if c not in selected_features]
+            z_col = unused_cols[0] if unused_cols else selected_features[1]
+
         fig_3d = plot_3d_clusters(
             df_clustered, selected_features[0], selected_features[1], z_col,
             "Cluster", personas
@@ -160,8 +167,12 @@ def run_clustering():
         corr_cols = selected_features + ([c for c in ["Exam_Score"] if c in df.columns and c not in selected_features])
         corr_fig = plot_correlation_matrix(df, corr_cols)
 
-        best_k = int(eval_df.loc[eval_df["Silhouette_Score"].idxmax()]["K"])
-        best_score = float(eval_df["Silhouette_Score"].max())
+        if eval_df.empty:
+            best_k = n_clusters
+            best_score = 0.0
+        else:
+            best_k = int(eval_df.loc[eval_df["Silhouette_Score"].idxmax()]["K"])
+            best_score = float(eval_df["Silhouette_Score"].max())
 
         df_clustered["Persona_Name"] = df_clustered["Cluster"].map(lambda c: personas.get(c, {}).get("name", f"Cluster {c}"))
         sample_records = df_clustered.head(50).to_dict(orient="records")
