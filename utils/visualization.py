@@ -116,7 +116,7 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
                 name="Cluster Centroids",
                 text=[f"Centroid {i}" for i in centroids_df["Cluster"]],
                 textposition="top center",
-                textfont=dict(weight="bold", color="black"),
+                textfont=dict(size=11, color="black"),
                 marker=dict(
                     size=16,
                     color="#1E293B",
