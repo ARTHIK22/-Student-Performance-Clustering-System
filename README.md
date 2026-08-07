@@ -1,6 +1,6 @@
 # 🎓 Student Performance Clustering System
 
-An end-to-end Machine Learning web application and analytics platform built with **Python**, **Streamlit**, and **Scikit-Learn**.
+An end-to-end Machine Learning web application and analytics platform built with **Python**, **Flask**, and **Scikit-Learn**.
 
 The system helps educators and academic counselors group students into meaningful **Academic Personas** based on behavioral indicators — weekly study hours, attendance percentage, assignment scores, and exam results — using **Unsupervised K-Means Clustering**.
 
@@ -29,7 +29,7 @@ The system helps educators and academic counselors group students into meaningfu
 
 ```
 Student Performance Clustering System/
-├── app.py                              # Main Streamlit web application & UI dashboard
+├── app.py                              # Flask Web Server & REST API
 ├── requirements.txt                    # Dependency specifications
 ├── test_clustering.py                  # Automated unit and integration test suite
 ├── data/
@@ -80,16 +80,12 @@ Theme toggle showcasing both UI modes.
 
 ## 🛠️ Tech Stack
 
-| Library | Version | Purpose |
-|---|---|---|
-| `streamlit` | `>=1.30.0,<1.42.0` | UI Dashboard & Web Framework |
-| `starlette` | `<0.40.0` | ASGI framework compatibility |
-| `pandas` | `>=2.0.0` | Dataframe manipulation & CSV export |
-| `numpy` | `>=1.24.0` | Vectorized numerical operations & data sampling |
-| `scikit-learn` | `>=1.3.0` | StandardScaler, KMeans, silhouette_score |
-| `plotly` | `>=5.15.0` | Interactive 2D/3D visualizations |
-| `matplotlib` | `>=3.7.0` | Base graphics support |
-| `seaborn` | `>=0.12.0` | Statistical visualization support |
+| Library | Purpose |
+|---|---|
+| `flask` | Backend REST API & routing |
+| `pandas` / `numpy` | Data manipulation |
+| `scikit-learn` | StandardScaler, KMeans, silhouette_score |
+| `plotly` | Interactive 2D/3D visualizations (rendered client-side from JSON) |
 
 ---
 
@@ -113,10 +109,10 @@ pip install -r requirements.txt
 ### Run the App
 
 ```bash
-streamlit run app.py
+python app.py
 ```
 
-The app will open automatically in your browser at `http://localhost:8501`.
+The app will be available at `http://127.0.0.1:5000`.
 
 ### Run Tests
 

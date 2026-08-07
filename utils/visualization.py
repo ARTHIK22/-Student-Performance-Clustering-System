@@ -83,7 +83,7 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
     
     if personas:
         df_plot["Persona"] = df_plot[cluster_col].apply(
-            lambda c: f"Cluster {c}: {personas.get(c, {}).get('name', f'Group {c}')}"
+            lambda c: f"Cluster {c}: {personas.get(c, {}).get('name', personas.get(str(c), {}).get('name', f'Group {c}'))}"
         )
         color_col = "Persona"
     else:
@@ -116,10 +116,10 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
                 name="Cluster Centroids",
                 text=[f"Centroid {i}" for i in centroids_df["Cluster"]],
                 textposition="top center",
-                textfont=dict(size=11, color="black"),
+                textfont=dict(size=12, color="#F59E0B"),
                 marker=dict(
                     size=16,
-                    color="#1E293B",
+                    color="#F59E0B",
                     symbol="diamond",
                     line=dict(width=2, color="#FFFFFF")
                 )
@@ -129,7 +129,8 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
     fig.update_layout(
         template="plotly_white",
         height=540,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+        margin=dict(l=60, r=40, t=60, b=100),
+        legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
         xaxis_title=x_col.replace("_", " "),
         yaxis_title=y_col.replace("_", " ")
     )
@@ -142,7 +143,7 @@ def plot_3d_clusters(df, x_col, y_col, z_col, cluster_col, personas=None):
     df_plot = df.copy()
     if personas:
         df_plot["Persona"] = df_plot[cluster_col].apply(
-            lambda c: personas.get(c, {}).get("name", f"Cluster {c}")
+            lambda c: personas.get(c, {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {c}"))
         )
         color_col = "Persona"
     else:
@@ -168,7 +169,7 @@ def plot_3d_clusters(df, x_col, y_col, z_col, cluster_col, personas=None):
     fig.update_layout(
         template="plotly_white",
         height=600,
-        margin=dict(l=0, r=0, b=0, t=40),
+        margin=dict(l=20, r=20, b=20, t=50),
         scene=dict(
             xaxis_title=x_col.replace("_", " "),
             yaxis_title=y_col.replace("_", " "),
@@ -184,7 +185,7 @@ def plot_feature_boxplots(df, cluster_col, feature_cols, personas=None):
     df_plot = df.copy()
     if personas:
         df_plot["Cluster Persona"] = df_plot[cluster_col].apply(
-            lambda c: personas.get(c, {}).get("name", f"Cluster {c}")
+            lambda c: personas.get(c, {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {c}"))
         )
         color_col = "Cluster Persona"
     else:
@@ -204,7 +205,8 @@ def plot_feature_boxplots(df, cluster_col, feature_cols, personas=None):
         )
         fig.update_layout(
             template="plotly_white",
-            height=380,
+            height=400,
+            margin=dict(l=50, r=40, t=50, b=120),
             showlegend=False,
             yaxis_title=col.replace("_", " "),
             xaxis_title="Cluster Persona"
@@ -227,6 +229,6 @@ def plot_correlation_matrix(df, numeric_cols):
     fig.update_layout(
         template="plotly_white",
         height=400,
-        margin=dict(l=40, r=40, t=60, b=40)
+        margin=dict(l=50, r=40, t=60, b=50)
     )
     return fig

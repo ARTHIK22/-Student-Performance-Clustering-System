@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import hashlib
 import pandas as pd
 import numpy as np
 from flask import Flask, render_template, request, jsonify
@@ -32,6 +33,22 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 SAMPLE_CSV = os.path.join(DATA_DIR, "student_performance_sample.csv")
 CUSTOM_CSV = os.path.join(DATA_DIR, "custom_student_data.csv")
+
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
+MAX_ROWS = 20000
+MAX_COLS = 100
+
+_model_cache = {}
+
+def hash_dataframe(df):
+    return hashlib.md5(pd.util.hash_pandas_object(df).values.tobytes()).hexdigest()
+
+def get_or_fit_model(df_hash, X_scaled, n_clusters, random_state):
+    key = (df_hash, n_clusters, random_state, X_scaled.shape[1])
+    if key not in _model_cache:
+        model, labels = fit_kmeans(X_scaled, n_clusters=n_clusters, random_state=random_state)
+        _model_cache[key] = (model, labels)
+    return _model_cache[key]
 
 def get_current_data(use_custom=False):
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -82,8 +99,18 @@ def upload_data():
     if file.filename == "":
         return jsonify({"success": False, "error": "Empty filename"}), 400
 
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_UPLOAD_BYTES:
+        return jsonify({"success": False, "error": "File too large (max 5MB)."}), 400
+
     try:
-        df = pd.read_csv(file)
+        df = pd.read_csv(file, nrows=MAX_ROWS + 1)
+        if len(df) > MAX_ROWS:
+            return jsonify({"success": False, "error": f"Too many rows (max {MAX_ROWS})."}), 400
+        if len(df.columns) > MAX_COLS:
+            return jsonify({"success": False, "error": f"Too many columns (max {MAX_COLS})."}), 400
         if len(df) < 5:
             return jsonify({"success": False, "error": "Dataset must contain at least 5 rows."}), 400
         
@@ -118,7 +145,8 @@ def run_clustering():
             return jsonify({"success": False, "error": "At least 2 valid numeric features are required."}), 400
 
         X_scaled, scaler = preprocess_data(df, selected_features)
-        model, labels = fit_kmeans(X_scaled, n_clusters=n_clusters, random_state=random_state)
+        df_hash = hash_dataframe(df[selected_features])
+        model, labels = get_or_fit_model(df_hash, X_scaled, n_clusters, random_state)
         
         df_clustered = df.copy()
         df_clustered["Cluster"] = labels
@@ -214,7 +242,8 @@ def predict_student():
         selected_features = [f for f in selected_features if f in df.columns]
 
         X_scaled, scaler = preprocess_data(df, selected_features)
-        model, _ = fit_kmeans(X_scaled, n_clusters=n_clusters, random_state=random_state)
+        df_hash = hash_dataframe(df[selected_features])
+        model, _ = get_or_fit_model(df_hash, X_scaled, n_clusters, random_state)
         centroids_df = get_unscaled_centroids(model, scaler, selected_features)
         personas = assign_personas(centroids_df, selected_features)
 
@@ -251,5 +280,7 @@ def predict_student():
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
-    print("Starting Student Performance Clustering Web Server on http://127.0.0.1:5000")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    port = int(os.environ.get("PORT", 5000))
+    print(f"Starting Student Performance Clustering Web Server on http://127.0.0.1:{port} (debug={debug_mode})")
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)

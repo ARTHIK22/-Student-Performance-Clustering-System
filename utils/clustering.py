@@ -109,6 +109,7 @@ def assign_personas(centroids_df, feature_cols):
                 "name": persona,
                 "description": desc
             }
+            personas[str(cluster_id)] = personas[cluster_id]
     else:
         for idx, row in centroids_df.iterrows():
             cluster_id = row["Cluster"]
@@ -116,6 +117,7 @@ def assign_personas(centroids_df, feature_cols):
                 "name": f"Cluster {cluster_id}",
                 "description": f"Cluster with centroid: {dict(row.drop('Cluster'))}"
             }
+            personas[str(cluster_id)] = personas[cluster_id]
             
     return personas
 

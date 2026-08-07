@@ -62,9 +62,26 @@ document.addEventListener("DOMContentLoaded", () => {
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     renderActiveTabCharts(target);
+                    const charts = targetEl.querySelectorAll('.plotly-chart-container');
+                    charts.forEach(c => {
+                        if (c.id) Plotly.Plots.resize(c);
+                    });
                 }, 100);
             });
         });
+    });
+
+    window.addEventListener("resize", () => {
+        const activeTab = document.querySelector(".nav-tab.active")?.getAttribute("data-tab");
+        if (activeTab) {
+            const container = document.getElementById(activeTab);
+            if (container) {
+                const charts = container.querySelectorAll('.plotly-chart-container');
+                charts.forEach(c => {
+                    if (c.id) Plotly.Plots.resize(c);
+                });
+            }
+        }
     });
 
     // Data Source Toggle
@@ -421,7 +438,23 @@ document.addEventListener("DOMContentLoaded", () => {
         fig.layout.plot_bgcolor = bg;
         fig.layout.font = fig.layout.font || {};
         fig.layout.font.color = fontColor;
-        fig.layout.autosize = true;
+        
+        if (figureJson.layout && figureJson.layout.height) {
+            fig.layout.height = figureJson.layout.height;
+        } else {
+            fig.layout.autosize = true;
+        }
+
+        // Apply grid and font colors for 2D axes
+        ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(axis => {
+            if (fig.layout[axis]) {
+                fig.layout[axis].gridcolor = gridColor;
+                fig.layout[axis].zerolinecolor = gridColor;
+                fig.layout[axis].color = fontColor;
+                fig.layout[axis].title = fig.layout[axis].title || {};
+                fig.layout[axis].title.font = { color: fontColor };
+            }
+        });
 
         // Detect if this is a 3D chart
         const is3D = fig.data && fig.data.some(trace => trace.type && trace.type.includes("3d"));
