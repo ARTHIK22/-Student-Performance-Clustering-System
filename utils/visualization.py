@@ -50,12 +50,13 @@ def plot_elbow_and_silhouette(eval_df):
 
     # Optimal K highlight (max silhouette score)
     best_k_row = eval_df.loc[eval_df["Silhouette_Score"].idxmax()]
+    best_k_val = int(float(best_k_row["K"]))
     fig.add_trace(
         go.Scatter(
             x=[best_k_row["K"]],
             y=[best_k_row["Silhouette_Score"]],
             mode="markers",
-            name=f"Optimal K={int(best_k_row['K'])}",
+            name=f"Optimal K={best_k_val}",
             marker=dict(size=14, color="#EF4444", symbol="star")
         ),
         row=1, col=2
@@ -83,7 +84,7 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
     
     if personas:
         df_plot["Persona"] = df_plot[cluster_col].apply(
-            lambda c: f"Cluster {c}: {personas.get(c, {}).get('name', personas.get(str(c), {}).get('name', f'Group {c}'))}"
+            lambda c: f"Cluster {int(float(c))}: {personas.get(int(float(c)), {}).get('name', personas.get(str(c), {}).get('name', f'Group {int(float(c))}'))}"
         )
         color_col = "Persona"
     else:
@@ -114,7 +115,7 @@ def plot_2d_clusters(df, x_col, y_col, cluster_col, centroids_df=None, personas=
                 y=centroids_df[y_col],
                 mode="markers+text",
                 name="Cluster Centroids",
-                text=[f"Centroid {i}" for i in centroids_df["Cluster"]],
+                text=[f"Centroid {int(float(i))}" for i in centroids_df["Cluster"]],
                 textposition="top center",
                 textfont=dict(size=12, color="#F59E0B"),
                 marker=dict(
@@ -143,7 +144,7 @@ def plot_3d_clusters(df, x_col, y_col, z_col, cluster_col, personas=None):
     df_plot = df.copy()
     if personas:
         df_plot["Persona"] = df_plot[cluster_col].apply(
-            lambda c: personas.get(c, {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {c}"))
+            lambda c: personas.get(int(float(c)), {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {int(float(c))}"))
         )
         color_col = "Persona"
     else:
@@ -185,7 +186,7 @@ def plot_feature_boxplots(df, cluster_col, feature_cols, personas=None):
     df_plot = df.copy()
     if personas:
         df_plot["Cluster Persona"] = df_plot[cluster_col].apply(
-            lambda c: personas.get(c, {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {c}"))
+            lambda c: personas.get(int(float(c)), {}).get("name", personas.get(str(c), {}).get("name", f"Cluster {int(float(c))}"))
         )
         color_col = "Cluster Persona"
     else:
