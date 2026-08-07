@@ -66,8 +66,7 @@ def get_unscaled_centroids(model, scaler, feature_cols):
     centroids_orig = scaler.inverse_transform(centroids_scaled)
     
     df_centroids = pd.DataFrame(centroids_orig, columns=feature_cols)
-    df_centroids.index.name = "Cluster"
-    df_centroids.reset_index(inplace=True)
+    df_centroids["Cluster"] = list(range(len(df_centroids)))
     return df_centroids
 
 def assign_personas(centroids_df, feature_cols):
@@ -85,7 +84,7 @@ def assign_personas(centroids_df, feature_cols):
         attend_mid = centroids_df[attend_col].median()
         
         for idx, row in centroids_df.iterrows():
-            cluster_id = row["Cluster"]
+            cluster_id = int(float(row["Cluster"]))
             st = row[study_col]
             at = row[attend_col]
             
@@ -105,19 +104,21 @@ def assign_personas(centroids_df, feature_cols):
                 persona = f"🎯 Group {cluster_id}"
                 desc = "Balanced academic metrics."
             
-            personas[cluster_id] = {
+            p_info = {
                 "name": persona,
                 "description": desc
             }
-            personas[str(cluster_id)] = personas[cluster_id]
+            personas[cluster_id] = p_info
+            personas[str(cluster_id)] = p_info
     else:
         for idx, row in centroids_df.iterrows():
-            cluster_id = row["Cluster"]
-            personas[cluster_id] = {
+            cluster_id = int(float(row["Cluster"]))
+            p_info = {
                 "name": f"Cluster {cluster_id}",
                 "description": f"Cluster with centroid: {dict(row.drop('Cluster'))}"
             }
-            personas[str(cluster_id)] = personas[cluster_id]
+            personas[cluster_id] = p_info
+            personas[str(cluster_id)] = p_info
             
     return personas
 
@@ -129,6 +130,6 @@ def predict_single_student(model, scaler, feature_cols, input_values, personas):
     """
     input_df = pd.DataFrame([input_values])[feature_cols]
     input_scaled = scaler.transform(input_df)
-    cluster_id = int(model.predict(input_scaled)[0])
-    persona_info = personas.get(cluster_id, {"name": f"Cluster {cluster_id}", "description": ""})
+    cluster_id = int(float(model.predict(input_scaled)[0]))
+    persona_info = personas.get(cluster_id, personas.get(str(cluster_id), {"name": f"Cluster {cluster_id}", "description": ""}))
     return cluster_id, persona_info
