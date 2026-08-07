@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import hashlib
+import tempfile
+import base64
 import pandas as pd
 import numpy as np
 from flask import Flask, render_template, request, jsonify
@@ -32,13 +34,30 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 SAMPLE_CSV = os.path.join(DATA_DIR, "student_performance_sample.csv")
-CUSTOM_CSV = os.path.join(DATA_DIR, "custom_student_data.csv")
+TEMP_DIR = tempfile.gettempdir()
+CUSTOM_CSV = os.path.join(TEMP_DIR, "custom_student_data.csv")
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
 MAX_ROWS = 20000
 MAX_COLS = 100
 
 _model_cache = {}
+
+def clean_plotly_dict(obj):
+    if isinstance(obj, dict):
+        if "bdata" in obj and "dtype" in obj:
+            dtype = np.dtype(obj["dtype"])
+            buf = base64.b64decode(obj["bdata"])
+            arr = np.frombuffer(buf, dtype=dtype)
+            return arr.tolist()
+        return {k: clean_plotly_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_plotly_dict(item) for item in obj]
+    elif isinstance(obj, (np.ndarray, pd.Series)):
+        return obj.tolist()
+    elif isinstance(obj, (np.integer, np.floating)):
+        return obj.item()
+    return obj
 
 def hash_dataframe(df):
     return hashlib.md5(pd.util.hash_pandas_object(df).values.tobytes()).hexdigest()
@@ -51,12 +70,22 @@ def get_or_fit_model(df_hash, X_scaled, n_clusters, random_state):
     return _model_cache[key]
 
 def get_current_data(use_custom=False):
-    os.makedirs(DATA_DIR, exist_ok=True)
     if use_custom and os.path.exists(CUSTOM_CSV):
-        return pd.read_csv(CUSTOM_CSV)
-    if not os.path.exists(SAMPLE_CSV):
-        save_sample_dataset()
-    return pd.read_csv(SAMPLE_CSV)
+        try:
+            return pd.read_csv(CUSTOM_CSV)
+        except Exception:
+            pass
+    if os.path.exists(SAMPLE_CSV):
+        return pd.read_csv(SAMPLE_CSV)
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        if not os.path.exists(SAMPLE_CSV):
+            save_sample_dataset()
+        if os.path.exists(SAMPLE_CSV):
+            return pd.read_csv(SAMPLE_CSV)
+    except Exception:
+        pass
+    return generate_student_dataset()
 
 @app.route("/")
 def index():
@@ -215,11 +244,11 @@ def run_clustering():
             "best_k": best_k,
             "best_silhouette_score": round(best_score, 4),
             "eval_data": eval_df.to_dict(orient="records"),
-            "fig_eval_json": json.loads(pio.to_json(fig_eval)),
-            "fig_2d_json": json.loads(pio.to_json(fig_2d)),
-            "fig_3d_json": json.loads(pio.to_json(fig_3d)),
-            "boxplots_json": [json.loads(pio.to_json(bp)) for bp in boxplots],
-            "corr_fig_json": json.loads(pio.to_json(corr_fig)),
+            "fig_eval_json": clean_plotly_dict(json.loads(pio.to_json(fig_eval))),
+            "fig_2d_json": clean_plotly_dict(json.loads(pio.to_json(fig_2d))),
+            "fig_3d_json": clean_plotly_dict(json.loads(pio.to_json(fig_3d))),
+            "boxplots_json": [clean_plotly_dict(json.loads(pio.to_json(bp))) for bp in boxplots],
+            "corr_fig_json": clean_plotly_dict(json.loads(pio.to_json(corr_fig))),
             "clustered_sample": sample_records
         })
 
