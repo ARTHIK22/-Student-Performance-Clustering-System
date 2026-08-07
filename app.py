@@ -153,14 +153,22 @@ def upload_data():
     except Exception as e:
         return jsonify({"success": False, "error": f"Failed to parse CSV: {str(e)}"}), 400
 
+def safe_int(val, default=0):
+    try:
+        if val is None:
+            return default
+        return int(float(val))
+    except (ValueError, TypeError):
+        return default
+
 @app.route("/api/cluster", methods=["POST"])
 def run_clustering():
     try:
         data = request.json or {}
         use_custom = data.get("use_custom", False)
         selected_features = data.get("features", [])
-        n_clusters = int(data.get("n_clusters", 4))
-        random_state = int(data.get("random_state", 42))
+        n_clusters = safe_int(data.get("n_clusters"), 4)
+        random_state = safe_int(data.get("random_state"), 42)
 
         df = get_current_data(use_custom=use_custom)
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -185,8 +193,11 @@ def run_clustering():
 
         cluster_counts = df_clustered["Cluster"].value_counts().to_dict()
         persona_cards = []
-        for cid, info in personas.items():
-            cnt = cluster_counts.get(cid, 0)
+        unique_cluster_ids = sorted([safe_int(c) for c in centroids_df["Cluster"].unique()])
+        
+        for cid in unique_cluster_ids:
+            info = personas.get(cid, personas.get(str(cid), {"name": f"Cluster {cid}", "description": ""}))
+            cnt = cluster_counts.get(cid, cluster_counts.get(float(cid), 0))
             pct = round((cnt / len(df)) * 100, 1)
             persona_cards.append({
                 "cluster_id": cid,
@@ -194,7 +205,7 @@ def run_clustering():
                 "description": info["description"],
                 "count": cnt,
                 "percentage": pct,
-                "color": CLUSTER_COLORS[int(cid) % len(CLUSTER_COLORS)]
+                "color": CLUSTER_COLORS[cid % len(CLUSTER_COLORS)]
             })
 
         eval_df = compute_elbow_and_silhouette(X_scaled, max_k=min(8, len(df) - 1))
@@ -228,10 +239,12 @@ def run_clustering():
             best_k = n_clusters
             best_score = 0.0
         else:
-            best_k = int(eval_df.loc[eval_df["Silhouette_Score"].idxmax()]["K"])
+            best_k = safe_int(eval_df.loc[eval_df["Silhouette_Score"].idxmax()]["K"])
             best_score = float(eval_df["Silhouette_Score"].max())
 
-        df_clustered["Persona_Name"] = df_clustered["Cluster"].map(lambda c: personas.get(c, {}).get("name", f"Cluster {c}"))
+        df_clustered["Persona_Name"] = df_clustered["Cluster"].map(
+            lambda c: personas.get(safe_int(c), {}).get("name", f"Cluster {safe_int(c)}")
+        )
         sample_records = df_clustered.head(50).to_dict(orient="records")
 
         return jsonify({
@@ -264,8 +277,8 @@ def predict_student():
         use_custom = data.get("use_custom", False)
         selected_features = data.get("features", ["Study_Hours_Per_Week", "Attendance_Percentage"])
         student_input = data.get("student_data", {})
-        n_clusters = int(data.get("n_clusters", 4))
-        random_state = int(data.get("random_state", 42))
+        n_clusters = safe_int(data.get("n_clusters"), 4)
+        random_state = safe_int(data.get("random_state"), 42)
 
         df = get_current_data(use_custom=use_custom)
         selected_features = [f for f in selected_features if f in df.columns]
@@ -279,6 +292,7 @@ def predict_student():
         predicted_cid, persona_info = predict_single_student(
             model, scaler, selected_features, student_input, personas
         )
+        predicted_cid = safe_int(predicted_cid)
 
         study_hrs = float(student_input.get("Study_Hours_Per_Week", 0))
         attendance = float(student_input.get("Attendance_Percentage", 0))
@@ -301,7 +315,7 @@ def predict_student():
             "cluster_id": predicted_cid,
             "persona_name": persona_info["name"],
             "persona_description": persona_info["description"],
-            "color": CLUSTER_COLORS[int(predicted_cid) % len(CLUSTER_COLORS)],
+            "color": CLUSTER_COLORS[predicted_cid % len(CLUSTER_COLORS)],
             "advice": advice
         })
 
