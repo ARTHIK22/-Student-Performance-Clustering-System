@@ -44,37 +44,46 @@ Student Performance Clustering System/
 
 ## 📸 Screenshots
 
-> Drop your screenshot files into a `screenshots/` folder in the project root using the filenames below (or update the paths to match your own), and they'll render automatically here.
+<img width="1906" height="902" alt="Screenshot 2026-08-07 230105" src="https://github.com/user-attachments/assets/83405b1e-9147-4c42-ba2f-85aeeb3889c7" />
+
 
 ### 📊 Data Overview
 KPI cards, dataset preview, summary statistics, and correlation heatmap.
 
-![Data Overview](./screenshots/data-overview.png)
+<img width="1906" height="902" alt="Screenshot 2026-08-07 230105" src="https://github.com/user-attachments/assets/cf56f008-b352-4143-affe-b90d1c33476e" />
+
+
 
 ### 📈 Optimal K Finder
 Elbow Method (WCSS) and Silhouette Score analysis with recommended K.
 
-![Optimal K Finder](./screenshots/optimal-k-finder.png)
+<img width="1912" height="902" alt="Screenshot 2026-08-07 230116" src="https://github.com/user-attachments/assets/16b1d27f-42fb-469f-80d4-c2937af8e637" />
+
+
 
 ### 🎨 Cluster Visualizer
 2D/3D interactive scatter plots with centroid overlays and feature boxplots.
 
-![Cluster Visualizer](./screenshots/cluster-visualizer.png)
+<img width="1918" height="908" alt="Screenshot 2026-08-07 230152" src="https://github.com/user-attachments/assets/65964143-32a9-4a17-b1aa-b9db84505fb6" />
+
 
 ### 📋 Dataset & Personas
 Color-coded persona breakdown cards with cluster filtering and CSV export.
 
-![Dataset & Personas](./screenshots/dataset-personas.png)
+<img width="1918" height="908" alt="Screenshot 2026-08-07 230152" src="https://github.com/user-attachments/assets/76ca4a26-6cab-4e86-b62c-e7d6843e401f" />
+
 
 ### 🔮 Student Predictor
 Live prediction form with persona badge and generated action plan.
 
-![Student Predictor](./screenshots/student-predictor.png)
+<img width="1919" height="902" alt="Screenshot 2026-08-07 230202" src="https://github.com/user-attachments/assets/83aeeb1f-21d2-4ca4-9c1a-f628a7cd3dc0" />
+
 
 ### 🌗 Dark / Light Mode
 Theme toggle showcasing both UI modes.
 
-![Dark and Light Mode](./screenshots/theme-toggle.png)
+<img width="1919" height="904" alt="Screenshot 2026-08-07 230229" src="https://github.com/user-attachments/assets/6789539a-fe96-46d0-9fe3-0a34c507fd64" />
+
 
 ---
 
