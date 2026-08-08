@@ -44,7 +44,8 @@ Student Performance Clustering System/
 
 ## 📸 Screenshots
 
-<img width="1906" height="902" alt="Screenshot 2026-08-07 230105" src="https://github.com/user-attachments/assets/83405b1e-9147-4c42-ba2f-85aeeb3889c7" />
+<img width="1919" height="901" alt="Screenshot 2026-08-07 230035" src="https://github.com/user-attachments/assets/e1c8d1e4-d0b2-437f-9b6b-ba2dc4c86f61" />
+
 
 
 ### 📊 Data Overview
@@ -64,7 +65,8 @@ Elbow Method (WCSS) and Silhouette Score analysis with recommended K.
 ### 🎨 Cluster Visualizer
 2D/3D interactive scatter plots with centroid overlays and feature boxplots.
 
-<img width="1918" height="908" alt="Screenshot 2026-08-07 230152" src="https://github.com/user-attachments/assets/65964143-32a9-4a17-b1aa-b9db84505fb6" />
+<img width="1919" height="908" alt="Screenshot 2026-08-07 230129" src="https://github.com/user-attachments/assets/528107a1-a983-4422-86cb-b140b8593394" />
+
 
 
 ### 📋 Dataset & Personas
