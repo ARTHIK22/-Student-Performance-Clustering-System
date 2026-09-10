@@ -181,13 +181,3 @@ The synthetic dataset generator (`utils/data_generator.py`) produces 300 realist
 Values are clipped to realistic bounds (e.g., Study Hours: 1–35, Attendance: 35–100%) and paired with generated Student IDs (`STU-1001`–`STU-1300`) and names.
 
 ---
-
-## 📄 License
-
-Add your preferred license here (e.g., MIT).
-
----
-
-## 🙋 Contributing
-
-Issues and pull requests are welcome. Please run the test suite (`test_clustering.py`) before submitting changes.
