@@ -3,13 +3,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let availableFeatures = [];
     let selectedFeatures = [];
     let isCustom = false;
-    let currentTheme = "dark";
+    let currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
     let lastClusterData = null;
 
     // Elements
     const themeToggleBtn = document.getElementById("themeToggleBtn");
     const themeIcon = document.getElementById("themeIcon");
     const themeText = document.getElementById("themeText");
+
+    function syncThemeButtonLabel() {
+        themeIcon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+        themeText.textContent = currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+        document.documentElement.setAttribute("data-theme", currentTheme);
+    }
+    syncThemeButtonLabel();
 
     const radioDataSources = document.querySelectorAll('input[name="dataSource"]');
     const sampleControlBox = document.getElementById("sampleControlBox");
@@ -36,10 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize Theme
     themeToggleBtn.addEventListener("click", () => {
         currentTheme = currentTheme === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", currentTheme);
-        themeIcon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
-        themeText.textContent = currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
-        
+        syncThemeButtonLabel();
+
         // Re-render charts for active tab with new theme
         const activeTab = document.querySelector(".nav-tab.active")?.getAttribute("data-tab");
         if (activeTab && lastClusterData) {

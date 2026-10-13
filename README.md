@@ -21,7 +21,7 @@ The system helps educators and academic counselors group students into meaningfu
 - **Custom Data Support** — upload any CSV dataset or use the built-in 300-student synthetic generator
 - **Real-Time Single Student Predictor** — predicts cluster membership for individual student metrics with tailored advisor recommendations
 - **Exportable Results** — instant CSV download of the clustered dataset
-- **Modern Aesthetic UI** — toggle between Dark Mode and Light Mode themes
+- **Neumorphic UI** — white-and-blood-red default theme with an optional dark theme, soft raised surfaces, and subtle inset shadows
 
 ---
 
@@ -30,6 +30,11 @@ The system helps educators and academic counselors group students into meaningfu
 ```
 Student Performance Clustering System/
 ├── app.py                              # Flask Web Server & REST API
+├── templates/
+│   └── index.html                      # Dashboard interface
+├── static/
+│   ├── styles.css                      # Responsive neumorphic design system
+│   └── app.js                          # Dashboard interactions and visualizations
 ├── requirements.txt                    # Dependency specifications
 ├── test_clustering.py                  # Automated unit and integration test suite
 ├── data/
@@ -81,11 +86,8 @@ Live prediction form with persona badge and generated action plan.
 <img width="1919" height="902" alt="Screenshot 2026-08-07 230202" src="https://github.com/user-attachments/assets/83aeeb1f-21d2-4ca4-9c1a-f628a7cd3dc0" />
 
 
-### 🌗 Dark / Light Mode
-Theme toggle showcasing both UI modes.
-
-<img width="1919" height="904" alt="Screenshot 2026-08-07 230229" src="https://github.com/user-attachments/assets/6789539a-fe96-46d0-9fe3-0a34c507fd64" />
-
+### 🎨 White Neumorphic Interface
+The default dashboard uses a predominantly white palette, subtle soft shadows, and blood-red highlights for controls, active navigation, and key information. The theme toggle switches to a complementary dark mode.
 
 ---
 
@@ -181,3 +183,9 @@ The synthetic dataset generator (`utils/data_generator.py`) produces 300 realist
 Values are clipped to realistic bounds (e.g., Study Hours: 1–35, Attendance: 35–100%) and paired with generated Student IDs (`STU-1001`–`STU-1300`) and names.
 
 ---
+
+---
+
+## 📘 Project Report
+
+See the [full project report](./Student_Performance_Clustering_System_Project_Report.md) for the system design, methodology, implementation details, API specification, testing, and analysis.
