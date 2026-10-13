@@ -165,6 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fetch Initial Dataset Metadata
     async function fetchDatasetInfo() {
+        document.getElementById("statsTableContainer").hidden = true;
+        setAnalyticsStatus("statsStatus", "Loading summary statistics…");
         showLoading(true);
         try {
             const res = await fetch(`/api/dataset?use_custom=${isCustom}`);
@@ -178,9 +180,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderFeatureCheckboxes();
                 renderPreviewTable(data.columns, data.preview);
                 renderStatsTable(data.summary_stats);
+            } else {
+                renderStatsTable([]);
             }
         } catch (err) {
             console.error("Failed to load dataset info:", err);
+            document.getElementById("statsTableContainer").hidden = true;
+            setAnalyticsStatus("statsStatus", "Summary statistics could not be loaded. Please try again.", "error");
         } finally {
             showLoading(false);
         }
@@ -239,7 +245,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderStatsTable(stats) {
-        const tbody = document.getElementById("statsTable").querySelector("tbody");
+        const table = document.getElementById("statsTable");
+        const tableContainer = document.getElementById("statsTableContainer");
+        const tbody = table.querySelector("tbody");
+        if (!Array.isArray(stats) || stats.length === 0) {
+            tbody.innerHTML = "";
+            tableContainer.hidden = true;
+            setAnalyticsStatus("statsStatus", "Load a dataset with numeric features to view summary statistics.");
+            return;
+        }
+
+        tableContainer.hidden = false;
+        setAnalyticsStatus("statsStatus", "");
         tbody.innerHTML = stats.map(s => `
             <tr>
                 <td><strong>${s.feature.replace(/_/g, " ")}</strong></td>
@@ -256,6 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
     async function executeClustering() {
         if (selectedFeatures.length < 2) return;
 
+        const correlationChart = document.getElementById("plotlyCorrMatrix");
+        if (correlationChart && window.Plotly) {
+            Plotly.purge(correlationChart);
+            correlationChart.replaceChildren();
+        }
+        setAnalyticsStatus("correlationStatus", "Loading feature correlation matrix…");
         showLoading(true);
         const payload = {
             use_custom: isCustom,
@@ -282,10 +305,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const activeTab = document.querySelector(".nav-tab.active")?.getAttribute("data-tab") || "tab-overview";
                 renderActiveTabCharts(activeTab);
             } else {
+                setAnalyticsStatus("correlationStatus", data.error || "The feature correlation matrix could not be generated.", "error");
                 alert("Clustering Error: " + (data.error || "Unknown error"));
             }
         } catch (err) {
             console.error("Clustering API execution failed:", err);
+            setAnalyticsStatus("correlationStatus", "The feature correlation matrix could not be loaded. Please try again.", "error");
         } finally {
             showLoading(false);
         }
@@ -295,7 +320,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!lastClusterData) return;
 
         if (tabId === "tab-overview") {
-            renderPlotlyConfigured("plotlyCorrMatrix", lastClusterData.corr_fig_json);
+            if (!lastClusterData.corr_fig_json) {
+                document.getElementById("plotlyCorrMatrix").replaceChildren();
+                setAnalyticsStatus("correlationStatus", "Sufficient numeric data is required to display the correlation matrix.");
+            } else {
+                renderPlotlyConfigured("plotlyCorrMatrix", lastClusterData.corr_fig_json);
+            }
         } else if (tabId === "tab-optimalk") {
             renderPlotlyConfigured("plotlyOptimalK", lastClusterData.fig_eval_json);
         } else if (tabId === "tab-visualizer") {
@@ -485,6 +515,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayModeBar: true
             }).then(() => {
                 Plotly.Plots.resize(el);
+                if (elementId === "plotlyCorrMatrix") setAnalyticsStatus("correlationStatus", "");
+            }).catch(err => {
+                console.error(`Failed to render chart ${elementId}:`, err);
+                if (elementId === "plotlyCorrMatrix") {
+                    setAnalyticsStatus("correlationStatus", "The feature correlation matrix could not be rendered.", "error");
+                }
             });
         } else {
             Plotly.react(elementId, fig.data, fig.layout, {
@@ -492,8 +528,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayModeBar: true
             }).then(() => {
                 Plotly.Plots.resize(el);
+                if (elementId === "plotlyCorrMatrix") setAnalyticsStatus("correlationStatus", "");
+            }).catch(err => {
+                console.error(`Failed to render chart ${elementId}:`, err);
+                if (elementId === "plotlyCorrMatrix") {
+                    setAnalyticsStatus("correlationStatus", "The feature correlation matrix could not be rendered.", "error");
+                }
             });
         }
+    }
+
+    function setAnalyticsStatus(elementId, message, state = "") {
+        const status = document.getElementById(elementId);
+        if (!status) return;
+        status.textContent = message;
+        status.classList.toggle("hidden", !message);
+        status.classList.toggle("error", state === "error");
     }
 
     function showLoading(show) {
